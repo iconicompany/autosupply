@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.werf.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $.Values.werf.name }}
+  template:
+    metadata:
+      annotations:
+        autocert.step.sm/name: {{ $.Values.werf.name }}{{ $.Values.werf.env }}
+      labels:
+        app: {{ $.Values.werf.name }}
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "kubernetes.io/arch"
+                  operator: In
+                  values: ["amd64"]
+      containers:
+      - name: app
+        image: {{ .Values.werf.image.app }}
+        ports:
+        - containerPort: 3000
+        env:
+        - name: WERF_ENV
+          value: {{ $.Values.werf.env }}
+        - name: WERF_NAME
+          value: {{ $.Values.werf.name }}
+        - name: DATABASE_URL
+          value: "{{ $.Values.env.DATABASE_URL }}?sslmode=require&sslrootcert=/var/run/autocert.step.sm/root.crt&sslcert=/var/run/autocert.step.sm/site.crt&sslkey=/var/run/autocert.step.sm/site.key"
+        - name: DOMAIN
+          value: {{ $.Values.env.DOMAIN }}
+        #{{- range $name, $value := .Values.env }}
+        #- name: {{ $name }}
+        #  value: {{ $value | quote }}
+        #{{- end }}
+        volumeMounts:
+        - name: {{ $.Values.werf.name }}
+          mountPath: /var/apps/{{ $.Values.werf.name }}
+          subPath: var
+        - name: secret-volume
+          readOnly: true
+          subPath: ".env"
+          mountPath: "/app/.env"
+      volumes:
+        - name: secret-volume
+        secret:
+          secretName: {{ $.Values.werf.name }}-secret
