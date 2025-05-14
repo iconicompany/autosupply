@@ -19,4 +19,4 @@ spec:
           service:
             name: {{ $.Values.werf.name }}
             port:
-              number: 3000
+              number: 5000

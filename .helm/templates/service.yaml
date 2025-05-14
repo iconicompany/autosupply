@@ -7,4 +7,4 @@ spec:
     app: {{ $.Values.werf.name }}
   ports:
   - name: http
-    port: 3000
+    port: 5000
