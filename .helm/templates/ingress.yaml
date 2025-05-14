@@ -13,7 +13,7 @@ spec:
   - host: {{ $.Values.env.DOMAIN }}
     http:
       paths:
-      - path: /{{ $.Values.werf.name }}
+      - path: /
         pathType: Prefix
         backend:
           service:
